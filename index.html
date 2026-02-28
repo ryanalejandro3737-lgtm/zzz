@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cora - Age Verification</title>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Background: product image fills the page ── */
+    .page-bg {
+      position: fixed;
+      inset: 0;
+      background:
+        url('https://cdn.shopify.com/s/files/1/0658/4044/7554/files/AgeVerificationSiteBGPhoto.png?v=1772312507') center center / cover no-repeat;
+      /* Swap the URL above for your actual product image path */
+      background-color: #1a3d2b; /* fallback forest green */
+      filter: blur(3px) brightness(0.55);
+      transform: scale(1.05); /* prevents blur edge bleed */
+      z-index: 0;
+    }
+
+    /* ── Dark forest overlay ── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(15, 42, 31, 0.75); /* #0F2A1F @ 75% */
+      z-index: 1;
+    }
+
+    /* ── Centering wrapper ── */
+    .stage {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      padding: 16px;
+    }
+
+    /* ── Modal card ── */
+    .modal {
+      background-color: #F7F6F2;
+      border-radius: 18px;
+      padding: 48px 44px 40px;
+      max-width: 460px;
+      width: 100%;
+      text-align: center;
+      box-shadow:
+        0 32px 80px rgba(0, 0, 0, 0.45),
+        0 4px 16px rgba(0, 0, 0, 0.2);
+      animation: fadeUp 0.45s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Logo ── */
+    .logo-wrap {
+      margin-bottom: 28px;
+    }
+
+    .logo-text {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: #1F6F50;
+      text-transform: uppercase;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: #7a9a88;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* ── Divider leaf ── */
+    .divider {
+      width: 40px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #1F6F50, transparent);
+      margin: 0 auto 28px;
+      border-radius: 2px;
+    }
+
+    /* ── Headline ── */
+    .headline {
+      font-size: 32px;
+      font-weight: 700;
+      color: #0F2A1F;
+      letter-spacing: 0.02em;
+      margin-bottom: 14px;
+      line-height: 1.15;
+    }
+
+    /* ── Subheadline ── */
+    .subheadline {
+      font-size: 15px;
+      color: #4a6358;
+      line-height: 1.65;
+      margin-bottom: 36px;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 400;
+    }
+
+    /* ── Button group ── */
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    /* Primary */
+    .btn-primary {
+      display: inline-block;
+      width: 100%;
+      padding: 17px 24px;
+      background-color: #1F6F50;
+      color: #ffffff;
+      font-size: 17px;
+      font-weight: 700;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      letter-spacing: 0.03em;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.22s ease, transform 0.15s ease, box-shadow 0.22s ease;
+      box-shadow: 0 4px 18px rgba(31, 111, 80, 0.35);
+    }
+
+    .btn-primary:hover {
+      background-color: #27895f;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(31, 111, 80, 0.45);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: 0 3px 12px rgba(31, 111, 80, 0.3);
+    }
+
+    /* Secondary */
+    .btn-secondary {
+      display: inline-block;
+      width: 100%;
+      padding: 14px 24px;
+      background-color: transparent;
+      color: #6b8478;
+      font-size: 14.5px;
+      font-weight: 500;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      letter-spacing: 0.02em;
+      border: 1.5px solid #b8ccc4;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      border-color: #8aada0;
+      color: #3d5a50;
+      background-color: rgba(184, 204, 196, 0.12);
+    }
+
+    /* ── Micro trust text ── */
+    .micro-text {
+      font-size: 11px;
+      color: #9ab3a8;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      letter-spacing: 0.06em;
+      line-height: 1.6;
+    }
+
+    .micro-text span {
+      display: inline-block;
+      margin: 0 6px;
+    }
+
+    .micro-text span::before {
+      content: '•';
+      margin-right: 12px;
+      color: #c5d8d0;
+    }
+
+    .micro-text span:first-child::before {
+      content: '';
+      margin-right: 0;
+    }
+
+    /* ── Redirect screen (under-22) ── */
+    .redirect-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .redirect-screen.visible {
+      display: flex;
+    }
+
+    .modal.redirect-mode .main-content {
+      display: none;
+    }
+
+    .redirect-icon {
+      font-size: 38px;
+      margin-bottom: 8px;
+    }
+
+    .redirect-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0F2A1F;
+    }
+
+    .redirect-msg {
+      font-size: 14px;
+      color: #6b8478;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 300px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .modal {
+        padding: 36px 28px 30px;
+      }
+      .headline {
+        font-size: 27px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Blurred background -->
+  <div class="page-bg"></div>
+
+  <!-- Dark forest overlay -->
+  <div class="overlay"></div>
+
+  <!-- Modal stage -->
+  <div class="stage">
+    <div class="modal" id="ageModal" role="dialog" aria-modal="true" aria-labelledby="modalHeadline">
+
+      <!-- ── MAIN CONTENT ── -->
+      <div class="main-content" id="mainContent">
+
+        <!-- Logo -->
+        <div class="logo-wrap" aria-label="Cora">
+          <div class="logo-text">CORA</div>
+          <div class="logo-sub">Botanical Alkaloid Collection</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Headline -->
+        <h1 class="headline" id="modalHeadline">Welcome</h1>
+
+        <!-- Subheadline -->
+        <p class="subheadline">
+          Access to this botanical collection is<br/>
+          limited to adults <strong>22+</strong>.<br/>
+          Please confirm your age to continue.
+        </p>
+
+        <!-- Buttons -->
+        <div class="btn-group" role="group" aria-label="Age confirmation">
+          <button
+            class="btn-primary"
+            id="btnYes"
+            onclick="handleYes()"
+            aria-label="Yes, I am 22 or older">
+            Yes — I'm 22+
+          </button>
+
+          <button
+            class="btn-secondary"
+            id="btnNo"
+            onclick="handleNo()"
+            aria-label="No, I am under 22">
+            No – I'm under 22
+          </button>
+        </div>
+
+        <!-- Micro trust line -->
+        <p class="micro-text">
+          <span>Secure checkout</span>
+          <span>Lab tested</span>
+          <span>Fast shipping</span>
+        </p>
+
+      </div><!-- /main-content -->
+
+      <!-- ── REDIRECT SCREEN (under-22) ── -->
+      <div class="redirect-screen" id="redirectScreen" role="alert" aria-live="polite">
+        <div class="redirect-icon">🌿</div>
+        <p class="redirect-title">Come Back Soon</p>
+        <p class="redirect-msg">
+          We're sorry — this collection is available<br/>
+          to adults 22 and older only.<br/>
+          Please visit us when you're of age.
+        </p>
+      </div>
+
+    </div><!-- /modal -->
+  </div><!-- /stage -->
+
+  <script>
+    // ── Prevent background scroll
+    document.body.style.overflow = 'hidden';
+
+    // ── YES: hide modal, reveal site
+    function handleYes() {
+      window.location.href = 'https://cora-herbal-wellness.myshopify.com/products/cora-kratom-gummies';
+    }
+
+    // ── NO: show exit message
+    function handleNo() {
+      const modal    = document.getElementById('ageModal');
+      const main     = document.getElementById('mainContent');
+      const redirect = document.getElementById('redirectScreen');
+
+      main.style.transition = 'opacity 0.25s ease';
+      main.style.opacity = '0';
+
+      setTimeout(() => {
+        main.style.display = 'none';
+        redirect.classList.add('visible');
+        redirect.style.opacity = '0';
+        redirect.style.transition = 'opacity 0.3s ease';
+        requestAnimationFrame(() => {
+          redirect.style.opacity = '1';
+        });
+
+        // Auto-redirect after 3 s (optional — swap URL)
+        setTimeout(() => {
+          window.location.href = 'https://www.google.com';
+        }, 3000);
+      }, 260);
+    }
+
+    // ── Keyboard accessibility
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (document.activeElement.id === 'btnNo') handleNo();
+        if (document.activeElement.id === 'btnYes') handleYes();
+      }
+    });
+  </script>
+
+</body>
+</html>
